@@ -37,21 +37,34 @@ export default function SignupPage() {
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!validate()) return;
+  e?.preventDefault();
+  if (!validate()) return;
 
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    try {
-      // ====== PLACEHOLDER: replace with real signup API call ======
-      await new Promise((r) => setTimeout(r, 900)); // simulate latency
-      router.push("/login"); // after signup go to login
-    } catch (err) {
-      setError("Signup failed. Try again or contact admin.");
+  try {
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, phone, password, entryNumber }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.message || "Signup failed. Try again.");
       setLoading(false);
+      return;
     }
-  };
+
+    router.push("/login");
+  } catch (err) {
+    setError("Signup failed. Please try again later.");
+    setLoading(false);
+  }
+};
+
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">

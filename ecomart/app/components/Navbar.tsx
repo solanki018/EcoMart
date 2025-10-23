@@ -22,7 +22,15 @@ const Navbar: React.FC = () => {
       <ul className="hidden md:flex space-x-8 text-sm">
         <li>
           <Link
-            href="/sell"
+            href="/howtouse"
+            className="hover:text-[#EC4899] transition cursor-pointer"
+          >
+            How to Use
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/sell1"
             className="hover:text-[#EC4899] transition cursor-pointer"
           >
             Sell
@@ -47,7 +55,7 @@ const Navbar: React.FC = () => {
       </ul>
 
       {/* Profile Icon */}
-      <Link href="/profile">
+      <Link href="/profil">
         <UserCircle className="w-6 h-6 cursor-pointer hover:text-[#EC4899]" />
       </Link>
     </motion.nav>
