@@ -32,17 +32,17 @@ const Footer: React.FC = () => {
       transition={{ duration: 0.6 }}
       className="fixed bottom-0 left-0 w-full h-20 border-t border-gray-800 bg-gradient-to-r from-black via-[#0a0a0a] to-black text-gray-400 flex flex-col md:flex-row justify-between items-center px-6 md:px-12 text-sm shadow-lg backdrop-blur-md z-50"
     >
-      {/* Left */}
+      {/* Left - hidden on mobile */}
       <motion.p
         whileHover={{ scale: 1.05 }}
-        className="text-center md:text-left"
+        className="hidden md:flex text-left"
       >
-        Designed & Built with{" "}
-        <span className="text-[#EC4899] animate-pulse font-semibold">💖</span>{" "}
-        by <span className="text-[#EC4899] font-semibold">Sourabh Solanki</span>
+        Designed & Built By {" "}
+        <span className="text-[#EC4899] animate-pulse font-semibold"></span>{" "}
+        <span className="text-[#EC4899] font-semibold">Students</span>
       </motion.p>
 
-      {/* Center */}
+      {/* Center - Timer always visible */}
       <motion.div
         whileHover={{ scale: 1.08 }}
         className="flex items-center gap-2 bg-[#1a1a1a] px-4 py-2 rounded-xl border border-gray-700 text-gray-300 shadow-md"
@@ -51,13 +51,13 @@ const Footer: React.FC = () => {
         <span>{time} IST</span>
       </motion.div>
 
-      {/* Right */}
+      {/* Right - hidden on mobile */}
       <motion.a
         href="mailto:sourabhsolanki1404@gmail.com"
         whileHover={{ scale: 1.05, color: "#EC4899" }}
-        className="flex items-center gap-2 hover:text-[#EC4899] transition-all"
+        className="hidden md:flex items-center gap-2 hover:text-[#EC4899] transition-all"
       >
-        <Mail size={16} /> sourabhsolanki1404@gmail.com
+        <Mail size={16} /> 2023chb1084@iitrpr.ac.in
       </motion.a>
     </motion.footer>
   );

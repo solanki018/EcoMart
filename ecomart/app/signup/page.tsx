@@ -16,6 +16,11 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // OTP Modal states
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [tempEmail, setTempEmail] = useState("");
+
   const iitrprRegex = /^[A-Za-z0-9._%+-]+@iitrpr\.ac\.in$/i;
   const phoneRegex = /^[0-9]{10}$/;
 
@@ -36,35 +41,76 @@ export default function SignupPage() {
     return true;
   };
 
+  // 🧩 Signup + Send OTP
   const handleSubmit = async (e?: React.FormEvent) => {
-  e?.preventDefault();
-  if (!validate()) return;
+    e?.preventDefault();
+    if (!validate()) return;
 
-  setLoading(true);
-  setError(null);
+    setLoading(true);
+    setError(null);
 
-  try {
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phone, password, entryNumber }),
-    });
+    try {
+      // Step 1: Send signup data → backend sends OTP
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, phone, password, entryNumber }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.message || "Signup failed. Try again.");
+      if (!res.ok) {
+        setError(data.message || "Signup failed. Try again.");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Step 2: Open OTP Modal
+      setTempEmail(email);
+      setShowOtpModal(true);
+    } catch (err) {
+      console.error(err);
+      setError("Signup failed. Please try again later.");
+    } finally {
       setLoading(false);
+    }
+  };
+
+  // 🧩 Verify OTP
+  const handleVerifyOtp = async () => {
+    if (!otp) {
+      setError("OTP is required to complete signup.");
       return;
     }
 
-    router.push("/login");
-  } catch (err) {
-    setError("Signup failed. Please try again later.");
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    setError(null);
 
+    try {
+      const verifyRes = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: tempEmail, otp }),
+      });
+
+      const verifyData = await verifyRes.json();
+
+      if (!verifyRes.ok) {
+        setError(verifyData.message || "OTP verification failed.");
+        setLoading(false);
+        return;
+      }
+
+      alert("✅ Signup successful! You can now log in.");
+      setShowOtpModal(false);
+      router.push("/login");
+    } catch (err) {
+      console.error(err);
+      setError("OTP verification failed. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">
@@ -174,7 +220,7 @@ export default function SignupPage() {
                   : "bg-[#EC4899] hover:bg-[#d23d87] text-black"
               } text-base md:text-lg`}
             >
-              {loading ? "Signing up..." : "Sign up"}
+              {loading ? "Sending OTP..." : "Sign up"}
             </button>
           </div>
         </form>
@@ -190,6 +236,45 @@ export default function SignupPage() {
           </button>
         </div>
       </section>
+
+      {/* ✅ OTP Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm text-center text-black">
+            <h3 className="text-xl font-semibold mb-2">Verify OTP</h3>
+            <p className="text-gray-600 mb-4">
+              Enter the 6-digit OTP sent to your email.
+            </p>
+
+            <input
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              placeholder="Enter OTP"
+              maxLength={6}
+              className="w-full p-2 border rounded text-center tracking-widest mb-3"
+            />
+
+            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleVerifyOtp}
+                disabled={loading}
+                className="flex-1 bg-[#EC4899] text-white py-2 rounded hover:bg-[#d23d87]"
+              >
+                {loading ? "Verifying..." : "Verify"}
+              </button>
+              <button
+                onClick={() => setShowOtpModal(false)}
+                className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

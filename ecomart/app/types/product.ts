@@ -9,4 +9,6 @@ export interface Product {
   ownerId: string;
   ownerName: string;
   sold: boolean;
+  ownerEmail?: string;
+  ownerPhone?: string;
 }

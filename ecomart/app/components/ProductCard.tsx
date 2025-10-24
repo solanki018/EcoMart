@@ -9,6 +9,7 @@ interface Props {
   token: string;
   currentUserName: string;
   currentUserEmail: string;
+  setMyProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
 const ProductCard: React.FC<Props> = ({
@@ -17,18 +18,20 @@ const ProductCard: React.FC<Props> = ({
   token,
   currentUserName,
   currentUserEmail,
+  setMyProducts,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const isOwner = currentUserId === item.ownerId;
 
   const toggleSold = async () => {
     if (!isOwner) return alert("Only owner can update!");
     try {
-      await fetch("/api/products", {
+      const res = await fetch("/api/products", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -36,7 +39,8 @@ const ProductCard: React.FC<Props> = ({
         },
         body: JSON.stringify({ id: item._id, sold: !item.sold }),
       });
-      window.location.reload();
+      const updated = await res.json();
+      setMyProducts((prev) => prev.map((p) => (p._id === item._id ? updated : p)));
     } catch (err) {
       console.error(err);
       alert("Error updating product");
@@ -55,7 +59,7 @@ const ProductCard: React.FC<Props> = ({
         },
         body: JSON.stringify({ id: item._id }),
       });
-      window.location.reload();
+      setMyProducts((prev) => prev.filter((p) => p._id !== item._id));
     } catch (err) {
       console.error(err);
       alert("Error deleting product");
@@ -81,12 +85,12 @@ const ProductCard: React.FC<Props> = ({
           ownerId: item.ownerId,
         }),
       });
-
       const data = await res.json();
       if (res.ok) {
-        alert("Purchase request sent successfully!");
         setIsBuyModalOpen(false);
         setMessage("");
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000); // auto hide after 2s
       } else {
         alert(data.error || "Failed to send purchase request");
       }
@@ -100,16 +104,11 @@ const ProductCard: React.FC<Props> = ({
 
   return (
     <>
-      {/* Product Card */}
       <motion.div
         whileHover={{ scale: 1.05 }}
         className="bg-[#1a1a1a] rounded-2xl p-4 shadow-md border border-gray-800 flex flex-col items-center w-full max-w-sm mx-auto"
       >
-        <img
-          src={item.image}
-          alt={item.title}
-          className="rounded-lg object-cover w-full h-48"
-        />
+        <img src={item.image} alt={item.title} className="rounded-lg object-cover w-full h-48" />
         <div className="w-full mt-2 flex justify-between items-center text-sm">
           <span className="font-semibold">{item.title}</span>
           <button
@@ -119,12 +118,8 @@ const ProductCard: React.FC<Props> = ({
             View Details
           </button>
         </div>
-
         <div className="w-full mt-3 flex justify-between items-center">
-          <span className="text-gray-300 font-semibold text-sm">
-            Rs. {item.price}
-          </span>
-
+          <span className="text-gray-300 font-semibold text-sm">Rs. {item.price}</span>
           {isOwner ? (
             <div className="flex gap-2">
               <button
@@ -156,7 +151,7 @@ const ProductCard: React.FC<Props> = ({
         </div>
       </motion.div>
 
-      {/* View Details Modal */}
+      {/* Modals */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
@@ -179,25 +174,18 @@ const ProductCard: React.FC<Props> = ({
               >
                 ✕
               </button>
-              <img
-                src={item.image}
-                alt={item.title}
-                className="w-full h-64 object-cover rounded-2xl mb-6"
-              />
+              <img src={item.image} alt={item.title} className="w-full h-64 object-cover rounded-2xl mb-6" />
               <h2 className="text-2xl font-bold mb-2">{item.title}</h2>
               <p className="text-gray-300 mb-4">{item.description}</p>
-              <p className="text-lg font-semibold text-[#EC4899] mb-2">
-                Price: Rs {item.price}
-              </p>
-              <p className="text-gray-400 text-sm">Category: {item.category}</p>
-              <p className="text-gray-400 text-sm">Owner: {item.ownerName}</p>
+              <p className="text-lg font-semibold text-[#EC4899] mb-2">Price: Rs {item.price}</p>
+              <p className="text-gray-400 text-sm mb-1">Category: {item.category}</p>
+              <p className="text-gray-400 text-sm mb-1">Owner: {item.ownerName}</p>
+              <p className="text-gray-400 text-sm mb-1">📧 Email: {item.ownerEmail || "Not provided"}</p>
+              <p className="text-gray-400 text-sm">📞 Phone: {item.ownerPhone || "Not provided"}</p>
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
 
-      {/* Buy Modal */}
-      <AnimatePresence>
         {isBuyModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -219,9 +207,7 @@ const ProductCard: React.FC<Props> = ({
               >
                 ✕
               </button>
-
               <h2 className="text-2xl font-bold mb-4">Send Purchase Request</h2>
-
               <input
                 type="text"
                 value={currentUserName}
@@ -235,23 +221,70 @@ const ProductCard: React.FC<Props> = ({
                 className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
               />
               <textarea
-                placeholder="Optional message"
-                rows={4}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
+                placeholder="Message to owner"
                 className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
               />
-
               <button
-                disabled={loading}
                 onClick={handleBuySubmit}
-                className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] rounded-lg text-white font-semibold"
+                disabled={loading}
+                className="w-full bg-[#10B981] hover:bg-[#059669] py-3 rounded-xl font-semibold text-white"
               >
                 {loading ? "Sending..." : "Send Request"}
               </button>
             </motion.div>
           </motion.div>
         )}
+
+        {/* Animated Success Popup */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex justify-center items-center bg-black/50"
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="bg-[#111] p-8 rounded-3xl flex flex-col items-center shadow-xl"
+              >
+                {/* Tick Animation */}
+                <motion.svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 52 52"
+                  className="w-16 h-16 mb-4"
+                >
+                  <motion.circle
+                    cx="26"
+                    cy="26"
+                    r="25"
+                    fill="none"
+                    stroke="#10B981"
+                    strokeWidth="2"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  <motion.path
+                    fill="none"
+                    stroke="#10B981"
+                    strokeWidth="4"
+                    d="M14 27 l7 7 l17 -17"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                  />
+                </motion.svg>
+                <p className="text-white text-lg font-semibold">Message Sent!</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </AnimatePresence>
     </>
   );

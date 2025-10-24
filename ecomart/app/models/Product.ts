@@ -8,9 +8,11 @@ export interface IProduct extends Document {
   image: string;
   ownerId: string;
   ownerName: string;
+  ownerEmail?: string;
+  ownerPhone?: string;
   sold: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const ProductSchema = new Schema<IProduct>(
@@ -22,9 +24,9 @@ const ProductSchema = new Schema<IProduct>(
     image: { type: String, required: true },
     ownerId: { type: String, required: true },
     ownerName: { type: String, required: true },
+    ownerEmail: { type: String, default: "Not provided" },
+    ownerPhone: { type: String, default: "Not provided" },
     sold: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );
