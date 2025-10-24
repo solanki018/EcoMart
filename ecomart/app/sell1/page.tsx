@@ -43,11 +43,16 @@ const SellPage: React.FC = () => {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const url = URL.createObjectURL(e.target.files[0]);
-      setProduct({ ...product, image: url });
-    }
-  };
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setProduct({ ...product, image: reader.result as string });
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,7 +83,7 @@ const SellPage: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-[#0a0a0a] to-[#111] text-white">
       <Navbar />
       <motion.section initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="flex-grow max-w-4xl mx-auto px-6 py-20">
-        <h1 className="text-5xl font-extrabold text-center mb-12">Sell Your <span className="text-[#EC4899]">Product</span></h1>
+        <h1 className="text-5xl font-extrabold text-center mb-12">Market<span className="text-[#EC4899]">Place</span></h1>
         <form onSubmit={handleSubmit} className="bg-[#1a1a1a] p-12 rounded-3xl border border-gray-800 shadow-xl grid gap-8">
           <input type="text" name="title" placeholder="Product Title" value={product.title} onChange={handleChange} className="bg-[#111] border border-gray-700 p-4 rounded-xl text-lg" />
           <textarea name="description" placeholder="Description" rows={5} value={product.description} onChange={handleChange} className="bg-[#111] border border-gray-700 p-4 rounded-xl text-lg" />

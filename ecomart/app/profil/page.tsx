@@ -58,12 +58,17 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user) return;
-    if (e.target.files && e.target.files[0]) {
-      const url = URL.createObjectURL(e.target.files[0]);
-      setUser({ ...user, profileImage: url });
-    }
-  };
+  if (!user) return;
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setUser({ ...user, profileImage: reader.result as string }); // base64 string
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
 
   const handleSave = async () => {
     if (!user || !token) return;

@@ -60,7 +60,7 @@ const ProductCard: React.FC<Props> = ({ item, currentUserId, token, onUpdate, on
           <button onClick={() => setIsModalOpen(true)} className="text-gray-400 hover:text-[#EC4899] font-medium">View Details</button>
         </div>
         <div className="w-full mt-3 flex justify-between items-center">
-          <span className="text-gray-300 font-semibold">${item.price}</span>
+          <span className="text-gray-300 font-semibold">Rs. {item.price}</span>
           {isOwner ? (
             <div className="flex gap-2">
               <button onClick={toggleSold} className={`px-3 py-1 rounded-md bg-[#EC4899] hover:bg-[#d63684] transition`}>
@@ -88,7 +88,7 @@ const ProductCard: React.FC<Props> = ({ item, currentUserId, token, onUpdate, on
               <img src={item.image} alt={item.title} className="w-full h-64 object-cover rounded-2xl mb-6" />
               <h2 className="text-2xl font-bold mb-2">{item.title}</h2>
               <p className="text-gray-300 mb-4">{item.description}</p>
-              <p className="text-lg font-semibold text-[#EC4899] mb-2">Price: ${item.price}</p>
+              <p className="text-lg font-semibold text-[#EC4899] mb-2">Price: Rs{item.price}</p>
               <p className="text-gray-400 text-sm">Category: {item.category}</p>
             </motion.div>
           </motion.div>
