@@ -111,6 +111,7 @@ const HomePage: React.FC = () => {
                     token={currentUser?.token || ""}
                     currentUserName={currentUser?.name || ""}
                     currentUserEmail={currentUser?.email || ""}
+                    setMyProducts={setProducts} // ✅ Pass the setter here
                   />
                 ))}
               </motion.div>
