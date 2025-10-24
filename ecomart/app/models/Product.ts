@@ -9,6 +9,8 @@ export interface IProduct extends Document {
   ownerId: string;
   ownerName: string;
   sold: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 const ProductSchema = new Schema<IProduct>(
@@ -21,6 +23,8 @@ const ProductSchema = new Schema<IProduct>(
     ownerId: { type: String, required: true },
     ownerName: { type: String, required: true },
     sold: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

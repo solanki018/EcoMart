@@ -6,25 +6,37 @@ import { Product } from "../types/product";
 interface Props {
   item: Product;
   currentUserId: string;
-  token: string; // JWT token
-  onUpdate?: (updated: Product) => void;
-  onDelete?: (id: string) => void;
+  token: string;
+  currentUserName: string;
+  currentUserEmail: string;
 }
 
-const ProductCard: React.FC<Props> = ({ item, currentUserId, token, onUpdate, onDelete }) => {
+const ProductCard: React.FC<Props> = ({
+  item,
+  currentUserId,
+  token,
+  currentUserName,
+  currentUserEmail,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const isOwner = currentUserId === item.ownerId;
 
   const toggleSold = async () => {
     if (!isOwner) return alert("Only owner can update!");
     try {
-      const res = await fetch("/api/products", {
+      await fetch("/api/products", {
         method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ id: item._id, sold: !item.sold }),
       });
-      const updated = await res.json();
-      onUpdate && onUpdate(updated);
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert("Error updating product");
@@ -37,42 +49,106 @@ const ProductCard: React.FC<Props> = ({ item, currentUserId, token, onUpdate, on
     try {
       await fetch("/api/products", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ id: item._id }),
       });
-      onDelete && onDelete(item._id!);
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert("Error deleting product");
     }
   };
 
-  const handleBuy = () => {
-    if (!isOwner && !item.sold) alert("Purchase request sent! (mock)");
+  const handleBuyClick = () => {
+    if (!isOwner && !item.sold) setIsBuyModalOpen(true);
+  };
+
+  const handleBuySubmit = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/buy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          buyerName: currentUserName,
+          buyerEmail: currentUserEmail,
+          productId: item._id,
+          productTitle: item.title,
+          message,
+          ownerId: item.ownerId,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Purchase request sent successfully!");
+        setIsBuyModalOpen(false);
+        setMessage("");
+      } else {
+        alert(data.error || "Failed to send purchase request");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error sending purchase request");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <>
-      <motion.div whileHover={{ scale: 1.05 }} className="bg-[#1a1a1a] rounded-2xl p-4 shadow-md border border-gray-800 flex flex-col items-center w-full max-w-sm mx-auto">
-        <img src={item.image} alt={item.title} className="rounded-lg object-cover w-full h-48" />
+      {/* Product Card */}
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        className="bg-[#1a1a1a] rounded-2xl p-4 shadow-md border border-gray-800 flex flex-col items-center w-full max-w-sm mx-auto"
+      >
+        <img
+          src={item.image}
+          alt={item.title}
+          className="rounded-lg object-cover w-full h-48"
+        />
         <div className="w-full mt-2 flex justify-between items-center text-sm">
           <span className="font-semibold">{item.title}</span>
-          <button onClick={() => setIsModalOpen(true)} className="text-gray-400 hover:text-[#EC4899] font-medium">View Details</button>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="text-gray-400 hover:text-[#EC4899] font-medium text-xs"
+          >
+            View Details
+          </button>
         </div>
+
         <div className="w-full mt-3 flex justify-between items-center">
-          <span className="text-gray-300 font-semibold">Rs. {item.price}</span>
+          <span className="text-gray-300 font-semibold text-sm">
+            Rs. {item.price}
+          </span>
+
           {isOwner ? (
             <div className="flex gap-2">
-              <button onClick={toggleSold} className={`px-3 py-1 rounded-md bg-[#EC4899] hover:bg-[#d63684] transition`}>
-                {item.sold ? "Mark Available" : "Mark Sold"}
+              <button
+                onClick={toggleSold}
+                className="px-2 py-1 text-xs rounded-md bg-[#EC4899] hover:bg-[#d63684] transition"
+              >
+                {item.sold ? "Available" : "Mark Sold"}
               </button>
-              <button onClick={handleDelete} className="px-3 py-1 rounded-md bg-red-600 hover:bg-red-700 transition">Delete</button>
+              <button
+                onClick={handleDelete}
+                className="px-2 py-1 text-xs rounded-md bg-red-600 hover:bg-red-700 transition"
+              >
+                Delete
+              </button>
             </div>
           ) : (
             <button
               disabled={item.sold}
-              onClick={handleBuy}
-              className={`px-3 py-1 rounded-md transition ${item.sold ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-[#2563EB] hover:bg-[#1D4ED8] text-white"}`}
+              onClick={handleBuyClick}
+              className={`px-3 py-1 text-sm rounded-md transition ${
+                item.sold
+                  ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  : "bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
+              }`}
             >
               {item.sold ? "Sold" : "Buy"}
             </button>
@@ -80,16 +156,99 @@ const ProductCard: React.FC<Props> = ({ item, currentUserId, token, onUpdate, on
         </div>
       </motion.div>
 
+      {/* View Details Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 flex justify-center items-center z-50" onClick={() => setIsModalOpen(false)}>
-            <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }} className="bg-[#1a1a1a] p-8 rounded-3xl w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto shadow-xl relative" onClick={(e) => e.stopPropagation()}>
-              <button onClick={() => setIsModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold">✕</button>
-              <img src={item.image} alt={item.title} className="w-full h-64 object-cover rounded-2xl mb-6" />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-[#1a1a1a] p-8 rounded-3xl w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto shadow-xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+              <img
+                src={item.image}
+                alt={item.title}
+                className="w-full h-64 object-cover rounded-2xl mb-6"
+              />
               <h2 className="text-2xl font-bold mb-2">{item.title}</h2>
               <p className="text-gray-300 mb-4">{item.description}</p>
-              <p className="text-lg font-semibold text-[#EC4899] mb-2">Price: Rs{item.price}</p>
+              <p className="text-lg font-semibold text-[#EC4899] mb-2">
+                Price: Rs {item.price}
+              </p>
               <p className="text-gray-400 text-sm">Category: {item.category}</p>
+              <p className="text-gray-400 text-sm">Owner: {item.ownerName}</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Buy Modal */}
+      <AnimatePresence>
+        {isBuyModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50"
+            onClick={() => setIsBuyModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="bg-[#1a1a1a] p-8 rounded-3xl w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto shadow-xl relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsBuyModalOpen(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold"
+              >
+                ✕
+              </button>
+
+              <h2 className="text-2xl font-bold mb-4">Send Purchase Request</h2>
+
+              <input
+                type="text"
+                value={currentUserName}
+                disabled
+                className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
+              />
+              <input
+                type="email"
+                value={currentUserEmail}
+                disabled
+                className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
+              />
+              <textarea
+                placeholder="Optional message"
+                rows={4}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
+              />
+
+              <button
+                disabled={loading}
+                onClick={handleBuySubmit}
+                className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] rounded-lg text-white font-semibold"
+              >
+                {loading ? "Sending..." : "Send Request"}
+              </button>
             </motion.div>
           </motion.div>
         )}

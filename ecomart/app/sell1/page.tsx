@@ -105,9 +105,16 @@ const SellPage: React.FC = () => {
           <div className="mt-20">
             <h2 className="text-4xl font-bold mb-10 text-center">My Products</h2>
             <div className="grid md:grid-cols-2 gap-8">
-              {myProducts.map((p) => (
-                <ProductCard key={p._id} item={p} currentUserId={currentUser.id} token={currentUser.token} onUpdate={(upd) => setMyProducts((prev) => prev.map((pr) => (pr._id === upd._id ? upd : pr)))} onDelete={(id) => setMyProducts((prev) => prev.filter((pr) => pr._id !== id))} />
-              ))}
+              {myProducts.map((p) => {
+                const cardProps = {
+                  item: p,
+                  currentUserId: currentUser.id,
+                  token: currentUser.token,
+                  onUpdate: (upd: { _id?: string }) => setMyProducts((prev) => prev.map((pr) => (pr._id === upd._id ? (upd as unknown as Product) : pr))),
+                  onDelete: (id?: string) => setMyProducts((prev) => prev.filter((pr) => pr._id !== id)),
+                } as any;
+                return <ProductCard key={p._id} {...cardProps} />;
+              })}
             </div>
           </div>
         )}

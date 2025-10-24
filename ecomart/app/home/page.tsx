@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "../components/Navbar";
@@ -15,18 +14,28 @@ const HomePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; token: string } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    name: string;
+    token: string;
+    email: string;
+  } | null>(null);
 
-  // 🧩 Load current user
+  // Load current user from token
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       const userData = JSON.parse(atob(token.split(".")[1]));
-      setCurrentUser({ id: userData.id, name: userData.name, token });
+      setCurrentUser({
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        token,
+      });
     }
   }, []);
 
-  // 🧠 Fetch products
+  // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -45,16 +54,14 @@ const HomePage: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // 🏷️ Handle Category Change
+  // Handle category filter
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
     if (cat === "All") setFiltered(products);
-    else {
-      const filteredItems = products.filter(
-        (p) => p.category?.toLowerCase() === cat.toLowerCase()
+    else
+      setFiltered(
+        products.filter((p) => p.category?.toLowerCase() === cat.toLowerCase())
       );
-      setFiltered(filteredItems);
-    }
   };
 
   return (
@@ -66,18 +73,20 @@ const HomePage: React.FC = () => {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="flex flex-col items-center w-full px-4 mt-12 sm:mt-16"
+        className="flex flex-col items-center w-full px-4 mt-12 sm:mt-16 pb-28"
       >
-        {/* 🧭 Category Tabs */}
+        {/* Category Tabs */}
         <CategoryTabs
           activeCategory={selectedCategory}
           onCategoryChange={handleCategoryChange}
         />
 
-        {/* 🛍️ Product Grid */}
+        {/* Products Grid */}
         <div className="mt-12 w-full max-w-7xl px-4 md:px-8">
           <h3 className="text-lg tracking-wider text-gray-300 uppercase mb-4">
-            {selectedCategory === "All" ? "Featured Items" : `${selectedCategory} Items`}
+            {selectedCategory === "All"
+              ? "Featured Items"
+              : `${selectedCategory} Items`}
           </h3>
 
           {loading ? (
@@ -100,6 +109,8 @@ const HomePage: React.FC = () => {
                     item={item}
                     currentUserId={currentUser?.id || ""}
                     token={currentUser?.token || ""}
+                    currentUserName={currentUser?.name || ""}
+                    currentUserEmail={currentUser?.email || ""}
                   />
                 ))}
               </motion.div>
@@ -111,6 +122,7 @@ const HomePage: React.FC = () => {
           )}
         </div>
       </motion.main>
+
       <Footer />
     </div>
   );
