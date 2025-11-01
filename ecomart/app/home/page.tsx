@@ -8,6 +8,11 @@ import CategoryTabs from "../components/CategoryTabs";
 import ProductCard from "../components/ProductCard";
 import { Product } from "../types/product";
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 40 },
+  show: { opacity: 1, y: 0 },
+};
+
 const HomePage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filtered, setFiltered] = useState<Product[]>([]);
@@ -21,7 +26,7 @@ const HomePage: React.FC = () => {
     email: string;
   } | null>(null);
 
-  // Load current user from token
+  // 🔹 Load current user
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -35,45 +40,47 @@ const HomePage: React.FC = () => {
     }
   }, []);
 
-  // Fetch products from API
+  // 🔹 Fetch products
   useEffect(() => {
-    const fetchProducts = async () => {
+    const loadProducts = async () => {
       try {
         const res = await fetch("/api/products", { cache: "no-store" });
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
         setProducts(data);
         setFiltered(data);
-      } catch (err: any) {
-        console.error("Error loading products:", err);
+      } catch (err) {
         setError("Unable to load products right now.");
       } finally {
         setLoading(false);
       }
     };
-    fetchProducts();
+    loadProducts();
   }, []);
 
-  // Handle category filter
   const handleCategoryChange = (cat: string) => {
     setSelectedCategory(cat);
-    if (cat === "All") setFiltered(products);
-    else
-      setFiltered(
-        products.filter((p) => p.category?.toLowerCase() === cat.toLowerCase())
-      );
+    setFiltered(
+      cat === "All"
+        ? products
+        : products.filter(
+            (p) => p.category?.toLowerCase() === cat.toLowerCase()
+          )
+    );
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-[#0a0a0a] to-[#111] text-white overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#F4F3EF] text-[#2F3E2F] transition-all">
       <Navbar />
+
       <HeroSection />
 
       <motion.main
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
-        className="flex flex-col items-center w-full px-4 mt-12 sm:mt-16 pb-28"
+        initial="hidden"
+        animate="show"
+        variants={fadeUp}
+        transition={{ duration: 0.8 }}
+        className="w-full max-w-7xl mx-auto px-4 flex flex-col items-center pb-28"
       >
         {/* Category Tabs */}
         <CategoryTabs
@@ -81,27 +88,29 @@ const HomePage: React.FC = () => {
           onCategoryChange={handleCategoryChange}
         />
 
-        {/* Products Grid */}
-        <div className="mt-12 w-full max-w-7xl px-4 md:px-8">
-          <h3 className="text-lg tracking-wider text-gray-300 uppercase mb-4">
+        <div className="mt-16 w-full">
+          <h3 className="text-xl font-semibold tracking-wide text-[#5A7F51] mb-6 pl-1">
             {selectedCategory === "All"
-              ? "Featured Items"
-              : `${selectedCategory} Items`}
+              ? "🌿 Recommended Products"
+              : `🌱 ${selectedCategory}`}
           </h3>
 
+          {/* Product Display Area */}
           {loading ? (
-            <p className="text-gray-400 text-center">Loading products...</p>
+            <p className="text-[#2F3E2F]/50 text-center py-14">
+              Loading products...
+            </p>
           ) : error ? (
-            <p className="text-red-400 text-center">{error}</p>
+            <p className="text-red-600 text-center py-14">{error}</p>
           ) : filtered.length > 0 ? (
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedCategory}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.5 }}
-                className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 place-items-center"
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.45 }}
+                className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8"
               >
                 {filtered.map((item) => (
                   <ProductCard
@@ -111,14 +120,14 @@ const HomePage: React.FC = () => {
                     token={currentUser?.token || ""}
                     currentUserName={currentUser?.name || ""}
                     currentUserEmail={currentUser?.email || ""}
-                    setMyProducts={setProducts} // ✅ Pass the setter here
+                    setMyProducts={setProducts}
                   />
                 ))}
               </motion.div>
             </AnimatePresence>
           ) : (
-            <p className="text-gray-400 text-center col-span-full">
-              No products found for this category.
+            <p className="text-[#2F3E2F]/50 text-center py-14">
+              No products available here yet.
             </p>
           )}
         </div>

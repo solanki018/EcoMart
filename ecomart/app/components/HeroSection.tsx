@@ -11,7 +11,7 @@ const HeroSection: React.FC = () => {
     >
       {/* Background Image */}
       <img
-        src="/panda.jpeg"
+        src="/main.jpeg"
         alt="EcoMart Mascot"
         className="absolute inset-0 w-full h-full object-cover"
       />
@@ -25,7 +25,7 @@ const HeroSection: React.FC = () => {
           Your Campus Thrift Zone
         </h2>
         <p className="mt-2 text-base md:text-lg text-gray-300">
-          Buy · Sell · Reuse — Sustainably on Campus
+          A new life to old things.
         </p>
       </div>
     </motion.section>

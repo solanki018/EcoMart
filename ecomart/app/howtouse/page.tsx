@@ -3,44 +3,99 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { motion } from "framer-motion";
+import { CheckCircle, ShoppingBag, Upload, Tag, UserCheck } from "lucide-react";
+
+const colors = {
+  bgTop: "#FAF9F6",
+  bgBottom: "#D8CAB3",
+  primary: "#5A7F51",
+  secondary: "#C9D7A7",
+  shadow: "#A28E74",
+  text: "#2F3E2F",
+};
 
 const HowToUsePage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-black via-[#0a0a0a] to-[#111] text-white">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        background: `linear-gradient(to bottom, ${colors.bgTop}, ${colors.bgBottom})`,
+        color: colors.text,
+      }}
+    >
       <Navbar />
 
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
-        className="flex-grow max-w-4xl mx-auto px-6 py-20"
+        className="flex-grow max-w-5xl mx-auto px-6 py-20"
       >
-        <h1 className="text-5xl font-extrabold text-center mb-12">
-          How to <span className="text-[#EC4899]">Use</span> This Platform
+        <h1 className="text-4xl md:text-5xl font-extrabold text-center mb-12">
+          How to <span style={{ color: colors.primary }}>Use</span> This Platform
         </h1>
 
-        {/* Selling Guide */}
-        <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-gray-800 shadow-xl mb-12">
-          <h2 className="text-3xl font-bold mb-4">Selling Products</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-300">
-            <li>Go to the <span className="text-[#EC4899]">Sell Page</span>.</li>
-            <li>Fill in your product details: title, description, price, category, and upload an image.</li>
-            <li>Click <span className="text-[#EC4899]">Upload Product</span> to make it visible to everyone.</li>
-            <li>Once your product is uploaded, you can see it under <span className="text-[#EC4899]">My Products</span>.</li>
-            <li>You can mark your product as <span className="text-[#EC4899]">Sold</span> or delete it anytime.</li>
+        {/* Selling */}
+        <div
+          className="p-8 rounded-3xl shadow-md mb-12 transition"
+          style={{
+            backgroundColor: "white",
+            border: `1px solid ${colors.shadow}`,
+          }}
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <Upload style={{ color: colors.primary }} />
+            <h2 className="text-2xl font-bold">Selling Products</h2>
+          </div>
+
+          <ul className="list-disc list-inside space-y-3 text-lg">
+            <li>
+              Visit the <span style={{ color: colors.primary }}>Sell Page</span>.
+            </li>
+            <li>
+              Upload a product with title, price, image & details.
+            </li>
+            <li>
+              Click <span style={{ color: colors.primary }}>Upload Product</span> to publish it.
+            </li>
+            <li>
+              Manage your items from{" "}
+              <span style={{ color: colors.primary }}>My Products</span>.
+            </li>
+            <li>
+              Update product as{" "}
+              <span style={{ color: colors.primary }}>Sold</span> when sold.
+            </li>
           </ul>
         </div>
 
-        {/* Buying Guide */}
-        <div className="bg-[#1a1a1a] p-8 rounded-3xl border border-gray-800 shadow-xl">
-          <h2 className="text-3xl font-bold mb-4">Buying Products</h2>
-          <ul className="list-disc list-inside space-y-2 text-gray-300">
-            <li>Go to the <span className="text-[#EC4899]">Home / Products</span> page.</li>
-            <li>Browse through available products listed by other users.</li>
-            <li>Click the <span className="text-[#EC4899]">Buy</span> button on a product you like.</li>
-            <li>An email notification will be sent to the product owner with your interest.</li>
-            <li>You can then communicate with the seller to finalize the purchase.</li>
-            <li>Once the product is bought, the owner will mark it as <span className="text-[#EC4899]">Sold</span> on the site.</li>
+        {/* Buying */}
+        <div
+          className="p-8 rounded-3xl shadow-md transition"
+          style={{
+            backgroundColor: "white",
+            border: `1px solid ${colors.shadow}`,
+          }}
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <ShoppingBag style={{ color: colors.primary }} />
+            <h2 className="text-2xl font-bold">Buying Products</h2>
+          </div>
+
+          <ul className="list-disc list-inside space-y-3 text-lg">
+            <li>
+              Browse items on the{" "}
+              <span style={{ color: colors.primary }}>Home / Products</span> page.
+            </li>
+            <li>Find something you love and view its details.</li>
+            <li>
+              Click <span style={{ color: colors.primary }}>Buy</span> to send your request.
+            </li>
+            <li>Seller receives your info & contacts you.</li>
+            <li>
+              Once confirmed, seller marks the item as{" "}
+              <span style={{ color: colors.primary }}>Sold</span>.
+            </li>
           </ul>
         </div>
       </motion.section>

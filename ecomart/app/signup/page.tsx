@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -16,7 +17,6 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // OTP Modal states
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otp, setOtp] = useState("");
   const [tempEmail, setTempEmail] = useState("");
@@ -26,22 +26,18 @@ export default function SignupPage() {
 
   const validate = () => {
     if (!name || !email || !phone || !password || !entryNumber) {
-      setError("Please fill in all fields.");
-      return false;
+      return setError("Please fill in all fields."), false;
     }
     if (!iitrprRegex.test(email.trim())) {
-      setError("Use your college email (must end with @iitrpr.ac.in).");
-      return false;
+      return setError("Use IIT Ropar email (@iitrpr.ac.in)."), false;
     }
     if (!phoneRegex.test(phone.trim())) {
-      setError("Phone number must be 10 digits.");
-      return false;
+      return setError("Phone number must be 10 digits."), false;
     }
     setError(null);
     return true;
   };
 
-  // 🧩 Signup + Send OTP
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!validate()) return;
@@ -50,38 +46,32 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      // Step 1: Send signup data → backend sends OTP
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, password, entryNumber }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          password,
+          entryNumber,
+        }),
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
 
-      if (!res.ok) {
-        setError(data.message || "Signup failed. Try again.");
-        setLoading(false);
-        return;
-      }
-
-      // ✅ Step 2: Open OTP Modal
       setTempEmail(email);
       setShowOtpModal(true);
-    } catch (err) {
-      console.error(err);
-      setError("Signup failed. Please try again later.");
+    } catch (err: any) {
+      setError(err.message || "Signup failed");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🧩 Verify OTP
   const handleVerifyOtp = async () => {
-    if (!otp) {
-      setError("OTP is required to complete signup.");
-      return;
-    }
+    if (!otp) return setError("Enter OTP to complete signup.");
 
     setLoading(true);
     setError(null);
@@ -93,97 +83,75 @@ export default function SignupPage() {
         body: JSON.stringify({ email: tempEmail, otp }),
       });
 
-      const verifyData = await verifyRes.json();
+      const data = await verifyRes.json();
+      if (!verifyRes.ok) throw new Error(data.message);
 
-      if (!verifyRes.ok) {
-        setError(verifyData.message || "OTP verification failed.");
-        setLoading(false);
-        return;
-      }
-
-      alert("✅ Signup successful! You can now log in.");
+      alert("✅ Signup successful! Please login.");
       setShowOtpModal(false);
       router.push("/login");
-    } catch (err) {
-      console.error(err);
-      setError("OTP verification failed. Please try again later.");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-      <section className="w-full max-w-lg md:max-w-xl bg-neutral-900/70 backdrop-blur-md border border-neutral-800 rounded-3xl p-10 shadow-lg">
-        {/* Header */}
-        <header className="mb-8 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold">
-            Sign up for <span className="text-[#EC4899]">EcoM</span>art
-          </h1>
-          <p className="text-sm md:text-base text-gray-400 mt-2">
-            Create your college account
-          </p>
+    <main className="min-h-screen bg-[#FAF9F6] text-[#2F3E2F] flex items-center justify-center overflow-hidden relative px-4">
+
+      {/* Eco Background Waves */}
+      <motion.div initial={{ y: 100 }} animate={{ y: 0 }}
+        className="absolute bottom-0 w-[200%] h-[45%] bg-[#D6E4C3] rounded-t-[45%]" />
+      <motion.div initial={{ y: 100 }} animate={{ y: 0 }}
+        className="absolute bottom-[-3%] w-[200%] h-[40%] bg-[#A9C48E] rounded-t-[50%]" />
+
+      {/* Signup Card */}
+      <motion.section
+        initial={{ opacity: 0, y: 35 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1 }}
+        className="relative z-10 w-full max-w-lg bg-white/70 backdrop-blur-lg 
+        border border-[#C9D7A7] rounded-3xl shadow-xl p-10"
+      >
+        <header className="text-center mb-8">
+          <h1 className="text-4xl font-bold"><span className="text-[#5A7F51]">Eco</span>Mart</h1>
+          <p className="text-[#4A5843] text-sm mt-2">Create your campus account</p>
         </header>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Name */}
-          <label className="block">
-            <span className="text-base md:text-lg text-gray-300">Full Name</span>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your full name"
-              className="mt-2 w-full px-5 py-4 rounded-xl bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#EC4899] text-white text-base md:text-lg"
-              required
-            />
-          </label>
-
-          {/* Email */}
-          <label className="block">
-            <span className="text-base md:text-lg text-gray-300">College Email</span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@iitrpr.ac.in"
-              className="mt-2 w-full px-5 py-4 rounded-xl bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#EC4899] text-white text-base md:text-lg"
-              required
-            />
-            <p className="mt-1 text-xs md:text-sm text-gray-500">
-              Must end with <span className="text-[#EC4899]">@iitrpr.ac.in</span>
-            </p>
-          </label>
-
-          {/* Phone Number */}
-          <label className="block">
-            <span className="text-base md:text-lg text-gray-300">Phone Number</span>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="10-digit phone number"
-              className="mt-2 w-full px-5 py-4 rounded-xl bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#EC4899] text-white text-base md:text-lg"
-              required
-            />
-          </label>
+          {/* Input Fields (all styled same) */}
+          {[
+            { label: "Full Name", state: name, set: setName, type: "text", placeholder: "Your full name" },
+            { label: "College Email", state: email, set: setEmail, type: "email", placeholder: "you@iitrpr.ac.in" },
+            { label: "Phone Number", state: phone, set: setPhone, type: "tel", placeholder: "10-digit number" },
+          ].map((i, idx) => (
+            <label key={idx} className="block">
+              <span className="text-sm font-medium">{i.label}</span>
+              <input
+                type={i.type}
+                value={i.state}
+                onChange={(e) => i.set(e.target.value)}
+                placeholder={i.placeholder}
+                className="mt-2 w-full px-4 py-3 rounded-xl border border-[#C9D7A7] bg-white 
+                focus:ring-2 focus:ring-[#5A7F51] outline-none"
+              />
+            </label>
+          ))}
 
           {/* Password */}
           <label className="block relative">
-            <span className="text-base md:text-lg text-gray-300">Password</span>
+            <span className="text-sm font-medium">Password</span>
             <input
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
-              className="mt-2 w-full px-5 py-4 rounded-xl bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#EC4899] text-white text-base md:text-lg pr-14"
-              required
+              className="mt-2 w-full px-4 py-3 rounded-xl border border-[#C9D7A7] bg-white
+              focus:ring-2 focus:ring-[#5A7F51] outline-none pr-14"
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-sm md:text-base text-gray-300 hover:text-white"
+            <button type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-[55%] -translate-y-1/2 text-sm text-[#4A5843]"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
@@ -191,89 +159,79 @@ export default function SignupPage() {
 
           {/* Entry Number */}
           <label className="block">
-            <span className="text-base md:text-lg text-gray-300">Entry Number</span>
+            <span className="text-sm font-medium">Entry Number</span>
             <input
               type="text"
               value={entryNumber}
               onChange={(e) => setEntryNumber(e.target.value)}
-              placeholder="Your entry number"
-              className="mt-2 w-full px-5 py-4 rounded-xl bg-neutral-800 border border-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#EC4899] text-white text-base md:text-lg"
-              required
+              placeholder="IITRPR Entry Number"
+              className="mt-2 w-full px-4 py-3 rounded-xl bg-white border border-[#C9D7A7]
+              focus:ring-2 focus:ring-[#5A7F51] outline-none"
             />
           </label>
 
           {/* Error */}
-          {error && (
-            <div className="text-sm md:text-base text-red-400 bg-red-900/30 p-2 rounded">
-              {error}
-            </div>
-          )}
+          {error && <p className="text-red-500 text-sm">{error}</p>}
 
-          {/* Submit */}
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full px-5 py-4 rounded-xl font-semibold transition ${
-                loading
-                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                  : "bg-[#EC4899] hover:bg-[#d23d87] text-black"
-              } text-base md:text-lg`}
-            >
-              {loading ? "Sending OTP..." : "Sign up"}
-            </button>
-          </div>
+          {/* Create Account */}
+          <button
+            disabled={loading}
+            className={`w-full py-4 rounded-xl font-semibold transition ${
+              loading ? "bg-gray-400" : "bg-[#5A7F51] hover:bg-[#4D6E48] text-white"
+            }`}
+          >
+            {loading ? "Sending OTP..." : "Sign up"}
+          </button>
         </form>
 
-        {/* Login Link */}
-        <div className="mt-6 text-center text-sm md:text-base text-gray-400">
+        {/* Login */}
+        <p className="text-sm text-center mt-6">
           Already have an account?{" "}
-          <button
-            className="text-[#EC4899] font-semibold hover:underline"
-            onClick={() => router.push("/login")}
-          >
-            Login here
+          <button onClick={() => router.push("/login")}
+            className="text-[#3B5931] font-semibold hover:underline">
+            Login
           </button>
-        </div>
-      </section>
+        </p>
+      </motion.section>
 
-      {/* ✅ OTP Modal */}
+      {/* OTP Modal */}
       {showOtpModal && (
-        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-sm text-center text-black">
-            <h3 className="text-xl font-semibold mb-2">Verify OTP</h3>
-            <p className="text-gray-600 mb-4">
-              Enter the 6-digit OTP sent to your email.
-            </p>
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+        >
+          <motion.div
+            initial={{ scale: 0.7 }} animate={{ scale: 1 }}
+            className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-sm text-center"
+          >
+            <h3 className="text-lg font-bold text-[#2F3E2F]">Email Verification</h3>
+            <p className="text-gray-600 mt-1 mb-4">Enter the OTP sent to your IIT email</p>
 
             <input
-              type="text"
               value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter OTP"
               maxLength={6}
-              className="w-full p-2 border rounded text-center tracking-widest mb-3"
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full text-center text-lg border-2 rounded-lg py-2 tracking-[0.5em]"
+              placeholder="••••••"
             />
 
-            {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
-            <div className="flex gap-3">
-              <button
-                onClick={handleVerifyOtp}
+            <div className="flex gap-3 mt-5">
+              <button onClick={handleVerifyOtp}
                 disabled={loading}
-                className="flex-1 bg-[#EC4899] text-white py-2 rounded hover:bg-[#d23d87]"
-              >
+                className="flex-1 bg-[#5A7F51] text-white rounded-xl py-2 hover:bg-[#4D6E48]">
                 {loading ? "Verifying..." : "Verify"}
               </button>
               <button
                 onClick={() => setShowOtpModal(false)}
-                className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300"
+                className="flex-1 bg-gray-200 rounded-xl py-2 hover:bg-gray-300"
               >
                 Cancel
               </button>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
     </main>
   );

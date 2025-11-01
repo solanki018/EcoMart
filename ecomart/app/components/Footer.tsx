@@ -30,34 +30,38 @@ const Footer: React.FC = () => {
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="fixed bottom-0 left-0 w-full h-20 border-t border-gray-800 bg-gradient-to-r from-black via-[#0a0a0a] to-black text-gray-400 flex flex-col md:flex-row justify-between items-center px-6 md:px-12 text-sm shadow-lg backdrop-blur-md z-50"
+      className="fixed bottom-0 left-0 w-full h-20 border-t border-[#A28E74] 
+        bg-[#F4F3EF]/80 backdrop-blur-xl
+        text-[#2F3E2F] flex flex-col md:flex-row justify-between items-center 
+        px-6 md:px-12 text-sm shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-50"
     >
-      {/* Left - hidden on mobile */}
+      {/* Left Text */}
       <motion.p
         whileHover={{ scale: 1.05 }}
-        className="hidden md:flex text-left"
+        className="hidden md:flex text-left font-medium"
       >
-        Designed & Built By {" "}
-        <span className="text-[#EC4899] animate-pulse font-semibold"></span>{" "}
-        <span className="text-[#EC4899] font-semibold">Students</span>
+        Designed & Built by{" "}
+        <span className="text-[#5A7F51] font-semibold ml-1">IIT Ropar Students</span>
       </motion.p>
 
-      {/* Center - Timer always visible */}
+      {/* Clock */}
       <motion.div
         whileHover={{ scale: 1.08 }}
-        className="flex items-center gap-2 bg-[#1a1a1a] px-4 py-2 rounded-xl border border-gray-700 text-gray-300 shadow-md"
+        className="flex items-center gap-2 bg-[#C9D7A7] px-4 py-2 rounded-xl 
+          border border-[#A28E74] text-[#2F3E2F] shadow-md"
       >
-        <Clock size={16} className="text-[#EC4899]" />
-        <span>{time} IST</span>
+        <Clock size={16} className="text-[#2F3E2F]" />
+        <span className="font-semibold">{time} IST</span>
       </motion.div>
 
-      {/* Right - hidden on mobile */}
+      {/* Contact */}
       <motion.a
-        href="mailto:sourabhsolanki1404@gmail.com"
-        whileHover={{ scale: 1.05, color: "#EC4899" }}
-        className="hidden md:flex items-center gap-2 hover:text-[#EC4899] transition-all"
+        href="mailto:2023chb1084@iitrpr.ac.in"
+        whileHover={{ scale: 1.05 }}
+        className="hidden md:flex items-center gap-2 transition-all 
+          text-[#2F3E2F] hover:text-[#5A7F51] font-medium"
       >
-        <Mail size={16} /> 2023chb1084@iitrpr.ac.in
+        <Mail size={16} /> Reach Us
       </motion.a>
     </motion.footer>
   );

@@ -12,6 +12,15 @@ interface Props {
   setMyProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
+const colors = {
+  bgLight: "#F4F3EF",
+  primary: "#5A7F51",
+  secondary: "#C9D7A7",
+  beige: "#D8CAB3",
+  brown: "#A28E74",
+  text: "#2F3E2F",
+};
+
 const ProductCard: React.FC<Props> = ({
   item,
   currentUserId,
@@ -25,11 +34,12 @@ const ProductCard: React.FC<Props> = ({
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<"delete" | "sold" | null>(null);
 
   const isOwner = currentUserId === item.ownerId;
 
   const toggleSold = async () => {
-    if (!isOwner) return alert("Only owner can update!");
+    if (!isOwner) return;
     try {
       const res = await fetch("/api/products", {
         method: "PUT",
@@ -39,19 +49,28 @@ const ProductCard: React.FC<Props> = ({
         },
         body: JSON.stringify({ id: item._id, sold: !item.sold }),
       });
-      const updated = await res.json();
-      setMyProducts((prev) => prev.map((p) => (p._id === item._id ? updated : p)));
-    } catch (err) {
-      console.error(err);
+
+      if (res.ok) {
+        const updated = await res.json();
+        setMyProducts((prev) =>
+          prev.map((p) => (p._id === item._id ? updated : p))
+        );
+        setShowSuccess(true);
+
+        setTimeout(() => {
+          setShowSuccess(false);
+          window.location.reload();
+        }, 1000);
+      }
+    } catch {
       alert("Error updating product");
     }
   };
 
   const handleDelete = async () => {
-    if (!isOwner) return alert("Only owner can delete!");
-    if (!confirm("Delete this product?")) return;
+    if (!isOwner) return;
     try {
-      await fetch("/api/products", {
+      const res = await fetch("/api/products", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -59,15 +78,19 @@ const ProductCard: React.FC<Props> = ({
         },
         body: JSON.stringify({ id: item._id }),
       });
-      setMyProducts((prev) => prev.filter((p) => p._id !== item._id));
-    } catch (err) {
-      console.error(err);
+
+      if (res.ok) {
+        setMyProducts((prev) => prev.filter((p) => p._id !== item._id));
+        setShowSuccess(true);
+
+        setTimeout(() => {
+          setShowSuccess(false);
+          window.location.reload();
+        }, 1000);
+      }
+    } catch {
       alert("Error deleting product");
     }
-  };
-
-  const handleBuyClick = () => {
-    if (!isOwner && !item.sold) setIsBuyModalOpen(true);
   };
 
   const handleBuySubmit = async () => {
@@ -85,65 +108,91 @@ const ProductCard: React.FC<Props> = ({
           ownerId: item.ownerId,
         }),
       });
-      const data = await res.json();
+
       if (res.ok) {
         setIsBuyModalOpen(false);
         setMessage("");
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000); // auto hide after 2s
+        setTimeout(() => setShowSuccess(false), 2000);
       } else {
-        alert(data.error || "Failed to send purchase request");
+        alert("Failed to send request");
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error sending purchase request");
     } finally {
       setLoading(false);
     }
   };
 
+  const confirmHandler = () => {
+    if (confirmAction === "delete") handleDelete();
+    else if (confirmAction === "sold") toggleSold();
+    setConfirmAction(null);
+  };
+
   return (
     <>
       <motion.div
-        whileHover={{ scale: 1.05 }}
-        className="bg-[#1a1a1a] rounded-2xl p-4 shadow-md border border-gray-800 flex flex-col items-center w-full max-w-sm mx-auto"
+        whileHover={{ scale: 1.03 }}
+        className="rounded-2xl p-4 shadow-lg border mx-auto w-full max-w-sm"
+        style={{
+          backgroundColor: colors.bgLight,
+          borderColor: colors.secondary,
+          color: colors.text,
+        }}
       >
-        <img src={item.image} alt={item.title} className="rounded-lg object-cover w-full h-48" />
-        <div className="w-full mt-2 flex justify-between items-center text-sm">
-          <span className="font-semibold">{item.title}</span>
+        <img
+          src={item.image}
+          alt={item.title}
+          className="rounded-lg object-cover w-full h-48 border"
+          style={{ borderColor: colors.beige }}
+        />
+
+        <div className="w-full mt-3 flex justify-between items-center">
+          <span className="font-bold">{item.title}</span>
+
           <button
             onClick={() => setIsModalOpen(true)}
-            className="text-gray-400 hover:text-[#EC4899] font-medium text-xs"
+            className="text-sm underline hover:opacity-70"
+            style={{ color: colors.primary }}
           >
             View Details
           </button>
         </div>
+
         <div className="w-full mt-3 flex justify-between items-center">
-          <span className="text-gray-300 font-semibold text-sm">Rs. {item.price}</span>
+          <span className="font-semibold" style={{ color: colors.primary }}>
+            ₹ {item.price}
+          </span>
+
           {isOwner ? (
             <div className="flex gap-2">
               <button
-                onClick={toggleSold}
-                className="px-2 py-1 text-xs rounded-md bg-[#EC4899] hover:bg-[#d63684] transition"
+                onClick={() => setConfirmAction("sold")}
+                style={{
+                  backgroundColor: item.sold ? colors.secondary : colors.primary,
+                  color: colors.text,
+                }}
+                className="px-2 py-1 text-xs rounded-md hover:opacity-80"
               >
                 {item.sold ? "Available" : "Mark Sold"}
               </button>
+
               <button
-                onClick={handleDelete}
-                className="px-2 py-1 text-xs rounded-md bg-red-600 hover:bg-red-700 transition"
+                onClick={() => setConfirmAction("delete")}
+                className="px-2 py-1 text-xs rounded-md hover:opacity-80"
+                style={{ backgroundColor: colors.brown, color: "white" }}
               >
                 Delete
               </button>
             </div>
           ) : (
             <button
+              onClick={() => setIsBuyModalOpen(true)}
               disabled={item.sold}
-              onClick={handleBuyClick}
-              className={`px-3 py-1 text-sm rounded-md transition ${
-                item.sold
-                  ? "bg-gray-700 text-gray-500 cursor-not-allowed"
-                  : "bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
-              }`}
+              className="px-3 py-1 text-sm rounded-md hover:opacity-90"
+              style={{
+                backgroundColor: item.sold ? "#BABABA" : colors.primary,
+                color: item.sold ? "#666" : "white",
+              }}
             >
               {item.sold ? "Sold" : "Buy"}
             </button>
@@ -151,140 +200,120 @@ const ProductCard: React.FC<Props> = ({
         </div>
       </motion.div>
 
-      {/* Modals */}
+      {/* ✅ View Details Modal (restored with owner info) */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div
+            className="fixed inset-0 flex justify-center items-center bg-black/40 z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50"
             onClick={() => setIsModalOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.8 }}
+              className="p-8 rounded-3xl w-11/12 md:w-1/2 relative"
+              style={{ backgroundColor: colors.bgLight, color: colors.text }}
+              initial={{ scale: 0.85 }}
               animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="bg-[#1a1a1a] p-8 rounded-3xl w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto shadow-xl relative"
+              exit={{ scale: 0.85 }}
               onClick={(e) => e.stopPropagation()}
             >
               <button
+                className="absolute top-3 right-3 text-lg font-bold"
                 onClick={() => setIsModalOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold"
               >
                 ✕
               </button>
-              <img src={item.image} alt={item.title} className="w-full h-64 object-cover rounded-2xl mb-6" />
+
+              <img
+                src={item.image}
+                alt={item.title}
+                className="rounded-xl w-full h-64 object-cover mb-6"
+              />
               <h2 className="text-2xl font-bold mb-2">{item.title}</h2>
-              <p className="text-gray-300 mb-4">{item.description}</p>
-              <p className="text-lg font-semibold text-[#EC4899] mb-2">Price: Rs {item.price}</p>
-              <p className="text-gray-400 text-sm mb-1">Category: {item.category}</p>
-              <p className="text-gray-400 text-sm mb-1">Owner: {item.ownerName}</p>
-              <p className="text-gray-400 text-sm mb-1">📧 Email: {item.ownerEmail || "Not provided"}</p>
-              <p className="text-gray-400 text-sm">📞 Phone: {item.ownerPhone || "Not provided"}</p>
+              <p className="mb-4 text-sm">{item.description}</p>
+
+              <p className="font-semibold mb-4">Price: ₹{item.price}</p>
+
+              <div className="border-t border-b py-4 text-sm space-y-1">
+                <p>
+                  <strong>Owner:</strong> {item.ownerName}
+                </p>
+                <p>
+                  <strong>Email:</strong> {item.ownerEmail}
+                </p>
+                {item.ownerPhone && (
+                  <p>
+                    <strong>Phone:</strong> {item.ownerPhone}
+                  </p>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {isBuyModalOpen && (
+      {/* ✅ Confirmation Popup */}
+      <AnimatePresence>
+        {confirmAction && (
           <motion.div
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 flex justify-center items-center z-50"
-            onClick={() => setIsBuyModalOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.8 }}
+              className="p-8 rounded-3xl text-center w-11/12 md:w-1/3"
+              style={{ backgroundColor: colors.bgLight, color: colors.text }}
+              initial={{ scale: 0.85 }}
               animate={{ scale: 1 }}
-              exit={{ scale: 0.8 }}
-              className="bg-[#1a1a1a] p-8 rounded-3xl w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto shadow-xl relative"
-              onClick={(e) => e.stopPropagation()}
+              exit={{ scale: 0.85 }}
             >
-              <button
-                onClick={() => setIsBuyModalOpen(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold"
-              >
-                ✕
-              </button>
-              <h2 className="text-2xl font-bold mb-4">Send Purchase Request</h2>
-              <input
-                type="text"
-                value={currentUserName}
-                disabled
-                className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
-              />
-              <input
-                type="email"
-                value={currentUserEmail}
-                disabled
-                className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
-              />
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Message to owner"
-                className="w-full p-3 mb-4 rounded-lg bg-gray-800 text-white"
-              />
-              <button
-                onClick={handleBuySubmit}
-                disabled={loading}
-                className="w-full bg-[#10B981] hover:bg-[#059669] py-3 rounded-xl font-semibold text-white"
-              >
-                {loading ? "Sending..." : "Send Request"}
-              </button>
+              <h2 className="text-xl font-bold mb-3">
+                {confirmAction === "delete"
+                  ? "Delete this product?"
+                  : "Mark this product as sold?"}
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to continue?
+              </p>
+
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={confirmHandler}
+                  className="px-6 py-2 rounded-lg font-semibold"
+                  style={{ backgroundColor: colors.primary, color: "white" }}
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setConfirmAction(null)}
+                  className="px-6 py-2 rounded-lg font-semibold"
+                  style={{ backgroundColor: colors.brown, color: "white" }}
+                >
+                  No
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Animated Success Popup */}
-        <AnimatePresence>
-          {showSuccess && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex justify-center items-center bg-black/50"
-            >
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                className="bg-[#111] p-8 rounded-3xl flex flex-col items-center shadow-xl"
-              >
-                {/* Tick Animation */}
-                <motion.svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 52 52"
-                  className="w-16 h-16 mb-4"
-                >
-                  <motion.circle
-                    cx="26"
-                    cy="26"
-                    r="25"
-                    fill="none"
-                    stroke="#10B981"
-                    strokeWidth="2"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.5 }}
-                  />
-                  <motion.path
-                    fill="none"
-                    stroke="#10B981"
-                    strokeWidth="4"
-                    d="M14 27 l7 7 l17 -17"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                  />
-                </motion.svg>
-                <p className="text-white text-lg font-semibold">Message Sent!</p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* ✅ Success Notification */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            className="fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-2xl text-white font-semibold shadow-xl z-50"
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            style={{
+              backgroundColor: colors.primary,
+            }}
+          >
+            ✅ Action completed successfully!
+          </motion.div>
+        )}
       </AnimatePresence>
     </>
   );
