@@ -149,84 +149,90 @@ const SellPage: React.FC = () => {
         </h1>
 
         {/* ✅ Upload Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="p-10 rounded-3xl shadow-xl grid gap-6"
-          style={{ background: "#FFFFFF", border: `1px solid ${colors.shadow}` }}
-        >
-          <input
-            type="text"
-            name="title"
-            placeholder="Product Title"
-            value={product.title}
-            onChange={handleChange}
-            className="border rounded-xl px-4 py-3 w-full"
-            style={{ borderColor: colors.shadow }}
-            required
-          />
+<form
+  onSubmit={handleSubmit}
+  className="p-10 rounded-3xl shadow-xl grid gap-6 mt-8" // <-- added mt-8 for top spacing
+  style={{ background: "#FFFFFF", border: `1px solid ${colors.shadow}` }}
+>
+  <input
+    type="text"
+    name="title"
+    placeholder="Product Title"
+    value={product.title}
+    onChange={handleChange}
+    className="border rounded-xl px-4 py-3 w-full"
+    style={{ borderColor: colors.shadow }}
+    required
+  />
 
-          <textarea
-            name="description"
-            rows={5}
-            placeholder="Description"
-            value={product.description}
-            onChange={handleChange}
-            className="border rounded-xl px-4 py-3 w-full"
-            style={{ borderColor: colors.shadow }}
-            required
-          />
+  <textarea
+    name="description"
+    rows={5}
+    placeholder="Description"
+    value={product.description}
+    onChange={handleChange}
+    className="border rounded-xl px-4 py-3 w-full"
+    style={{ borderColor: colors.shadow }}
+    required
+  />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="number"
-              name="price"
-              placeholder="Price (₹)"
-              value={product.price}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-3 w-full"
-              style={{ borderColor: colors.shadow }}
-              required
-            />
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <input
+      type="number"
+      name="price"
+      placeholder="Price (₹)"
+      value={product.price}
+      onChange={handleChange}
+      className="border rounded-xl px-4 py-3 w-full"
+      style={{ borderColor: colors.shadow }}
+      required
+    />
 
-            <select
-              name="category"
-              value={product.category}
-              onChange={handleChange}
-              className="border rounded-xl px-4 py-3 w-full"
-              style={{ borderColor: colors.shadow }}
-              required
-            >
-              <option value="">Select Category</option>
-              <option value="cycles">Cycles</option>
-              <option value="electronics">Electronics</option>
-              <option value="books">Books</option>
-              <option value="misc">Others</option>
-            </select>
-          </div>
+    <select
+      name="category"
+      value={product.category}
+      onChange={handleChange}
+      className="border rounded-xl px-4 py-3 w-full"
+      style={{ borderColor: colors.shadow }}
+      required
+    >
+      <option value="">Select Category</option>
+      <option value="cycles">Cycles</option>
+      <option value="electronics">Electronics</option>
+      <option value="books">Books</option>
+      <option value="misc">Others</option>
+    </select>
+  </div>
 
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="border rounded-xl px-4 py-3 cursor-pointer w-full"
-            style={{ borderColor: colors.shadow }}
-            required
-          />
+  <div>
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handleImageChange}
+      className="border rounded-xl px-4 py-3 cursor-pointer w-full"
+      style={{ borderColor: colors.shadow }}
+      required
+    />
+    {/* ✅ Size note below upload */}
+    <p className="text-sm text-gray-600 mt-2 flex items-center gap-1">
+      📸 Please upload an image under <span className="font-medium text-gray-800">1 MB</span>.
+    </p>
+  </div>
 
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            type="submit"
-            className="rounded-xl py-3 text-lg font-semibold w-full text-white"
-            style={{ background: colors.primary }}
-          >
-            Upload Product
-          </motion.button>
+  <motion.button
+    whileHover={{ scale: 1.03 }}
+    whileTap={{ scale: 0.97 }}
+    type="submit"
+    className="rounded-xl py-3 text-lg font-semibold w-full text-white"
+    style={{ background: colors.primary }}
+  >
+    Upload Product
+  </motion.button>
 
-          <p className="text-sm text-center opacity-80">
-            * Profile details will be used automatically
-          </p>
-        </form>
+  <p className="text-sm text-center opacity-80">
+    * Profile details will be used automatically
+  </p>
+</form>
 
         {/* ✅ My Products */}
         {myProducts.length > 0 && (

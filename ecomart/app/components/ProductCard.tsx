@@ -34,6 +34,7 @@ const ProductCard: React.FC<Props> = ({
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [confirmAction, setConfirmAction] = useState<"delete" | "sold" | null>(null);
 
   const isOwner = currentUserId === item.ownerId;
@@ -56,11 +57,12 @@ const ProductCard: React.FC<Props> = ({
         setMyProducts((prev) =>
           prev.map((p) => (p._id === item._id ? updated : p))
         );
+        setSuccessMessage(item.sold ? "Product marked as Available!" : "Product marked as Sold!");
         setShowSuccess(true);
         setTimeout(() => {
           setShowSuccess(false);
           window.location.reload();
-        }, 1000);
+        }, 1500);
       }
     } catch {
       alert("Error updating product");
@@ -82,11 +84,12 @@ const ProductCard: React.FC<Props> = ({
 
       if (res.ok) {
         setMyProducts((prev) => prev.filter((p) => p._id !== item._id));
+        setSuccessMessage("Product deleted successfully!");
         setShowSuccess(true);
         setTimeout(() => {
           setShowSuccess(false);
           window.location.reload();
-        }, 1000);
+        }, 1500);
       }
     } catch {
       alert("Error deleting product");
@@ -113,6 +116,7 @@ const ProductCard: React.FC<Props> = ({
       if (res.ok) {
         setIsBuyModalOpen(false);
         setMessage("");
+        setSuccessMessage("Purchase request sent successfully!");
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 2000);
       } else {
@@ -174,7 +178,7 @@ const ProductCard: React.FC<Props> = ({
                 }}
                 className="px-2 py-1 text-xs rounded-md hover:opacity-80"
               >
-                {item.sold ? "Available" : "Mark Sold"}
+                {item.sold ? "Mark Available" : "Mark Sold"}
               </button>
 
               <button
@@ -202,91 +206,86 @@ const ProductCard: React.FC<Props> = ({
       </motion.div>
 
       {/* 🪟 View Details Modal */}
-<AnimatePresence>
-  {isModalOpen && (
-    <motion.div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={() => setIsModalOpen(false)}
-    >
-      <motion.div
-        className="p-6 rounded-3xl w-11/12 md:w-1/2 relative"
-        style={{
-          backgroundColor: colors.bgLight,
-          color: colors.text,
-        }}
-        initial={{ scale: 0.85 }}
-        animate={{ scale: 1 }}
-        exit={{ scale: 0.85 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* ❌ Close Button */}
-        <button
-          className="absolute top-3 right-3 text-lg font-bold"
-          onClick={() => setIsModalOpen(false)}
-        >
-          ✕
-        </button>
-
-        {/* 🖼 Product Image */}
-        <div className="w-full flex justify-center mb-4">
-          <img
-            src={item.image}
-            alt={item.title}
-            className="w-full h-56 object-contain rounded-xl border"
-            style={{ borderColor: colors.beige }}
-          />
-        </div>
-
-        {/* 🧾 Product Info */}
-        <div className="text-left">
-          <h2 className="text-2xl font-bold mb-1">{item.title}</h2>
-          <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-          <p className="font-semibold text-lg mb-4 text-green-700">
-            Price: ₹{item.price}
-          </p>
-
-          {/* 📦 Extra Details */}
-          <div className="text-sm space-y-1 border-t border-gray-300 pt-3 mt-3">
-            <p><strong>Category:</strong> {item.category || "Not specified"}</p>
-            <p><strong>Owner:</strong> {item.ownerName || "Unknown"}</p>
-            <p><strong>📧 Email:</strong> {item.ownerEmail || "Not provided"}</p>
-            <p><strong>📞 Phone:</strong> {item.ownerPhone || "Not provided"}</p>
-            <p>
-              <strong>Status:</strong>{" "}
-              {item.sold ? (
-                <span className="text-red-600 font-semibold">Sold</span>
-              ) : (
-                <span className="text-green-600 font-semibold">Available</span>
-              )}
-            </p>
-          </div>
-
-          {/* 💰 Buy Button (only for non-owners) */}
-          {!isOwner && (
-            <div className="flex justify-center">
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div
+              className="p-6 rounded-3xl w-11/12 md:w-1/2 relative"
+              style={{
+                backgroundColor: colors.bgLight,
+                color: colors.text,
+              }}
+              initial={{ scale: 0.85 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.85 }}
+              onClick={(e) => e.stopPropagation()}
+            >
               <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setIsBuyModalOpen(true);
-                }}
-                className="px-6 py-2 mt-6 rounded-lg font-semibold"
-                style={{
-                  backgroundColor: colors.primary,
-                  color: "white",
-                }}
+                className="absolute top-3 right-3 text-lg font-bold"
+                onClick={() => setIsModalOpen(false)}
               >
-                Buy Now
+                ✕
               </button>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+
+              <div className="w-full flex justify-center mb-4">
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  className="w-full h-56 object-contain rounded-xl border"
+                  style={{ borderColor: colors.beige }}
+                />
+              </div>
+
+              <div className="text-left">
+                <h2 className="text-2xl font-bold mb-1">{item.title}</h2>
+                <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                <p className="font-semibold text-lg mb-4 text-green-700">
+                  Price: ₹{item.price}
+                </p>
+
+                <div className="text-sm space-y-1 border-t border-gray-300 pt-3 mt-3">
+                  <p><strong>Category:</strong> {item.category || "Not specified"}</p>
+                  <p><strong>Owner:</strong> {item.ownerName || "Unknown"}</p>
+                  <p><strong>📧 Email:</strong> {item.ownerEmail || "Not provided"}</p>
+                  <p><strong>📞 Phone:</strong> {item.ownerPhone || "Not provided"}</p>
+                  <p>
+                    <strong>Status:</strong>{" "}
+                    {item.sold ? (
+                      <span className="text-red-600 font-semibold">Sold</span>
+                    ) : (
+                      <span className="text-green-600 font-semibold">Available</span>
+                    )}
+                  </p>
+                </div>
+
+                {!isOwner && (
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        setIsBuyModalOpen(true);
+                      }}
+                      className="px-6 py-2 mt-6 rounded-lg font-semibold"
+                      style={{
+                        backgroundColor: colors.primary,
+                        color: "white",
+                      }}
+                    >
+                      Buy Now
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 🧾 Confirmation Popup */}
       <AnimatePresence>
@@ -382,19 +381,24 @@ const ProductCard: React.FC<Props> = ({
           </motion.div>
         )}
 
-        {showSuccess && (
-          <motion.div
-            className="fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-2xl text-white font-semibold shadow-xl z-50"
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -30 }}
-            style={{
-              backgroundColor: colors.primary,
-            }}
-          >
-            ✅ Action completed successfully!
-          </motion.div>
-        )}
+        {/* ✅ Custom Success Toast */}
+        <AnimatePresence>
+          {showSuccess && (
+            <motion.div
+              key="toast"
+              className="fixed top-24 left-1/2 transform -translate-x-1/2 px-8 py-4 rounded-2xl text-white font-semibold shadow-2xl z-50 text-center"
+              initial={{ opacity: 0, y: -40, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -40, scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 100, damping: 10 }}
+              style={{
+                backgroundColor: colors.primary,
+              }}
+            >
+              {successMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </AnimatePresence>
     </>
   );

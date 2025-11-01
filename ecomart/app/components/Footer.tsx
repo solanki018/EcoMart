@@ -30,10 +30,12 @@ const Footer: React.FC = () => {
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="fixed bottom-0 left-0 w-full h-20 border-t border-[#A28E74] 
+      className="fixed bottom-0 left-0 w-full border-t border-[#A28E74]
         bg-[#F4F3EF]/80 backdrop-blur-xl
-        text-[#2F3E2F] flex flex-col md:flex-row justify-between items-center 
-        px-6 md:px-12 text-sm shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-50"
+        text-[#2F3E2F] flex flex-col md:flex-row justify-center md:justify-between 
+        items-center gap-3 md:gap-0
+        px-6 md:px-12 py-4 md:py-3
+        text-sm shadow-[0_-4px_12px_rgba(0,0,0,0.1)] z-50"
     >
       {/* Left Text */}
       <motion.p
@@ -41,14 +43,17 @@ const Footer: React.FC = () => {
         className="hidden md:flex text-left font-medium"
       >
         Designed & Built by{" "}
-        <span className="text-[#5A7F51] font-semibold ml-1">IIT Ropar Students</span>
+        <span className="text-[#5A7F51] font-semibold ml-1">
+          IIT Ropar Students
+        </span>
       </motion.p>
 
       {/* Clock */}
       <motion.div
         whileHover={{ scale: 1.08 }}
-        className="flex items-center gap-2 bg-[#C9D7A7] px-4 py-2 rounded-xl 
-          border border-[#A28E74] text-[#2F3E2F] shadow-md"
+        className="flex items-center gap-2 bg-[#C9D7A7] px-5 py-2 rounded-xl 
+          border border-[#A28E74] text-[#2F3E2F] shadow-md
+          my-2 md:my-0"   // 👈 Adds top & bottom space on mobile
       >
         <Clock size={16} className="text-[#2F3E2F]" />
         <span className="font-semibold">{time} IST</span>

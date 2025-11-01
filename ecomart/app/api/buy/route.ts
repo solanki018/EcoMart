@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       subject: `${buyerName} wants to buy product ${productTitle}`,
       text: `Buyer: ${buyerName}\nEmail: ${buyerEmail}\nMessage: ${message || "N/A"}`,
       html: `<p><strong>Buyer:</strong> ${buyerName}</p>
-             <p><strong>Email:</strong> ${buyerEmail}</p>
+             <p><strong>Email:</strong> ${buyerEmail} (Now you can contact Him/Her via this email)</p>
              <p><strong>Message:</strong> ${message || "N/A"}</p>`,
     });
 
