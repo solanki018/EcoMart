@@ -38,6 +38,7 @@ const ProductCard: React.FC<Props> = ({
 
   const isOwner = currentUserId === item.ownerId;
 
+  // 🔁 Mark Sold or Available
   const toggleSold = async () => {
     if (!isOwner) return;
     try {
@@ -56,7 +57,6 @@ const ProductCard: React.FC<Props> = ({
           prev.map((p) => (p._id === item._id ? updated : p))
         );
         setShowSuccess(true);
-
         setTimeout(() => {
           setShowSuccess(false);
           window.location.reload();
@@ -67,6 +67,7 @@ const ProductCard: React.FC<Props> = ({
     }
   };
 
+  // ❌ Delete Product
   const handleDelete = async () => {
     if (!isOwner) return;
     try {
@@ -82,7 +83,6 @@ const ProductCard: React.FC<Props> = ({
       if (res.ok) {
         setMyProducts((prev) => prev.filter((p) => p._id !== item._id));
         setShowSuccess(true);
-
         setTimeout(() => {
           setShowSuccess(false);
           window.location.reload();
@@ -93,6 +93,7 @@ const ProductCard: React.FC<Props> = ({
     }
   };
 
+  // 💬 Buy Request Submit
   const handleBuySubmit = async () => {
     setLoading(true);
     try {
@@ -130,6 +131,7 @@ const ProductCard: React.FC<Props> = ({
 
   return (
     <>
+      {/* 🛒 Product Card */}
       <motion.div
         whileHover={{ scale: 1.03 }}
         className="rounded-2xl p-4 shadow-lg border mx-auto w-full max-w-sm"
@@ -148,7 +150,6 @@ const ProductCard: React.FC<Props> = ({
 
         <div className="w-full mt-3 flex justify-between items-center">
           <span className="font-bold">{item.title}</span>
-
           <button
             onClick={() => setIsModalOpen(true)}
             className="text-sm underline hover:opacity-70"
@@ -200,60 +201,94 @@ const ProductCard: React.FC<Props> = ({
         </div>
       </motion.div>
 
-      {/* ✅ View Details Modal (restored with owner info) */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            className="fixed inset-0 flex justify-center items-center bg-black/40 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsModalOpen(false)}
-          >
-            <motion.div
-              className="p-8 rounded-3xl w-11/12 md:w-1/2 relative"
-              style={{ backgroundColor: colors.bgLight, color: colors.text }}
-              initial={{ scale: 0.85 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.85 }}
-              onClick={(e) => e.stopPropagation()}
-            >
+      {/* 🪟 View Details Modal */}
+<AnimatePresence>
+  {isModalOpen && (
+    <motion.div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={() => setIsModalOpen(false)}
+    >
+      <motion.div
+        className="p-6 rounded-3xl w-11/12 md:w-1/2 relative"
+        style={{
+          backgroundColor: colors.bgLight,
+          color: colors.text,
+        }}
+        initial={{ scale: 0.85 }}
+        animate={{ scale: 1 }}
+        exit={{ scale: 0.85 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* ❌ Close Button */}
+        <button
+          className="absolute top-3 right-3 text-lg font-bold"
+          onClick={() => setIsModalOpen(false)}
+        >
+          ✕
+        </button>
+
+        {/* 🖼 Product Image */}
+        <div className="w-full flex justify-center mb-4">
+          <img
+            src={item.image}
+            alt={item.title}
+            className="w-full h-56 object-contain rounded-xl border"
+            style={{ borderColor: colors.beige }}
+          />
+        </div>
+
+        {/* 🧾 Product Info */}
+        <div className="text-left">
+          <h2 className="text-2xl font-bold mb-1">{item.title}</h2>
+          <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+          <p className="font-semibold text-lg mb-4 text-green-700">
+            Price: ₹{item.price}
+          </p>
+
+          {/* 📦 Extra Details */}
+          <div className="text-sm space-y-1 border-t border-gray-300 pt-3 mt-3">
+            <p><strong>Category:</strong> {item.category || "Not specified"}</p>
+            <p><strong>Owner:</strong> {item.ownerName || "Unknown"}</p>
+            <p><strong>📧 Email:</strong> {item.ownerEmail || "Not provided"}</p>
+            <p><strong>📞 Phone:</strong> {item.ownerPhone || "Not provided"}</p>
+            <p>
+              <strong>Status:</strong>{" "}
+              {item.sold ? (
+                <span className="text-red-600 font-semibold">Sold</span>
+              ) : (
+                <span className="text-green-600 font-semibold">Available</span>
+              )}
+            </p>
+          </div>
+
+          {/* 💰 Buy Button (only for non-owners) */}
+          {!isOwner && (
+            <div className="flex justify-center">
               <button
-                className="absolute top-3 right-3 text-lg font-bold"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setIsBuyModalOpen(true);
+                }}
+                className="px-6 py-2 mt-6 rounded-lg font-semibold"
+                style={{
+                  backgroundColor: colors.primary,
+                  color: "white",
+                }}
               >
-                ✕
+                Buy Now
               </button>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
-              <img
-                src={item.image}
-                alt={item.title}
-                className="rounded-xl w-full h-64 object-cover mb-6"
-              />
-              <h2 className="text-2xl font-bold mb-2">{item.title}</h2>
-              <p className="mb-4 text-sm">{item.description}</p>
-
-              <p className="font-semibold mb-4">Price: ₹{item.price}</p>
-
-              <div className="border-t border-b py-4 text-sm space-y-1">
-                <p>
-                  <strong>Owner:</strong> {item.ownerName}
-                </p>
-                <p>
-                  <strong>Email:</strong> {item.ownerEmail}
-                </p>
-                {item.ownerPhone && (
-                  <p>
-                    <strong>Phone:</strong> {item.ownerPhone}
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ✅ Confirmation Popup */}
+      {/* 🧾 Confirmation Popup */}
       <AnimatePresence>
         {confirmAction && (
           <motion.div
@@ -299,8 +334,54 @@ const ProductCard: React.FC<Props> = ({
         )}
       </AnimatePresence>
 
-      {/* ✅ Success Notification */}
+      {/* 💬 Buy Modal */}
       <AnimatePresence>
+        {isBuyModalOpen && (
+          <motion.div
+            className="fixed inset-0 flex justify-center items-center bg-black/40 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsBuyModalOpen(false)}
+          >
+            <motion.div
+              className="p-8 rounded-3xl w-11/12 md:w-1/2 relative"
+              style={{ backgroundColor: colors.bgLight, color: colors.text }}
+              initial={{ scale: 0.85 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.85 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute top-3 right-3 text-lg font-bold"
+                onClick={() => setIsBuyModalOpen(false)}
+              >
+                ✕
+              </button>
+
+              <h2 className="text-2xl font-bold mb-4">Purchase Request</h2>
+
+              <textarea
+                placeholder="Write your message..."
+                className="w-full p-3 rounded-lg border mb-4 text-sm"
+                style={{ borderColor: colors.brown }}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+
+              <button
+                onClick={handleBuySubmit}
+                className="w-full py-3 rounded-lg font-semibold"
+                style={{
+                  backgroundColor: colors.primary,
+                  color: "white",
+                }}
+              >
+                {loading ? "Sending..." : "Send Request"}
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+
         {showSuccess && (
           <motion.div
             className="fixed top-24 left-1/2 transform -translate-x-1/2 px-6 py-4 rounded-2xl text-white font-semibold shadow-xl z-50"
