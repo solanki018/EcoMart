@@ -55,7 +55,7 @@ const DonationPage: React.FC = () => {
             transition={{ duration: 2, repeat: Infinity }}
             className="text-2xl font-semibold text-[#5A7F51] mb-2"
           >
-            🚀 Coming Soon...
+            Coming Soon...
           </motion.h2>
 
           <p className="text-base text-[#2F3E2F]/80 mt-2 leading-relaxed">

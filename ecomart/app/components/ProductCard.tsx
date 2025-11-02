@@ -264,23 +264,7 @@ const ProductCard: React.FC<Props> = ({
                   </p>
                 </div>
 
-                {!isOwner && (
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => {
-                        setIsModalOpen(false);
-                        setIsBuyModalOpen(true);
-                      }}
-                      className="px-6 py-2 mt-6 rounded-lg font-semibold"
-                      style={{
-                        backgroundColor: colors.primary,
-                        color: "white",
-                      }}
-                    >
-                      Buy Now
-                    </button>
-                  </div>
-                )}
+                
               </div>
             </motion.div>
           </motion.div>
